@@ -25,8 +25,21 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1) {
     exit();
 }
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || !isset($_SESSION['user_name']) || empty($_SESSION['user_name']) || !isset($_SESSION['user_email']) || empty($_SESSION['user_email']) || !isset($_SESSION['user_role']) || empty($_SESSION['user_role'])) {
+// Check if user is logged in - more robust validation with debugging
+$logged_in = false;
+if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
+    // Additional checks for other required session variables
+    if (isset($_SESSION['user_name']) && !empty($_SESSION['user_name'])) {
+        $logged_in = true;
+    } else {
+        error_log("Session validation failed: user_name not set or empty");
+    }
+} else {
+    error_log("Session validation failed: user_id not set or empty");
+    error_log("Current session data: " . print_r($_SESSION, true));
+}
+
+if (!$logged_in) {
     // Clear any previous output buffers
     while (ob_get_level()) {
         ob_end_clean();
@@ -58,7 +71,7 @@ $conn = $database->getConnection();
 
 // Fetch additional user data if needed
 try {
-    $query = "SELECT first_name, last_name, role, department, phone, location FROM users WHERE id = ? LIMIT 1";
+    $query = "SELECT first_name, last_name, email, role, department, phone, location FROM users WHERE id = ? LIMIT 1";
     $stmt = $conn->prepare($query);
     $stmt->execute([$user_id]);
     
@@ -67,9 +80,11 @@ try {
         
         // Update session with fresh data
         $_SESSION['user_name'] = $user_data['first_name'] . ' ' . $user_data['last_name'];
+        $_SESSION['user_email'] = $user_data['email'];
         $_SESSION['user_role'] = $user_data['role'];
         
         $user_name = $_SESSION['user_name'];
+        $user_email = $_SESSION['user_email'];
         $user_role = $_SESSION['user_role'];
         $user_department = $user_data['department'] ?? '';
         $user_phone = $user_data['phone'] ?? '';

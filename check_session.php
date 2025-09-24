@@ -1,33 +1,32 @@
 <?php
-// Start session
 session_start();
 
-// Check if session is working
-if (!isset($_SESSION['test'])) {
-    $_SESSION['test'] = time();
-    echo "Session test value set to: " . $_SESSION['test'] . "<br>";
+echo "<h2>Session Debug Information</h2>";
+echo "<p>Current time: " . date('Y-m-d H:i:s') . "</p>";
+
+echo "<h3>Session Variables:</h3>";
+if (isset($_SESSION)) {
+    echo "<pre>";
+    print_r($_SESSION);
+    echo "</pre>";
 } else {
-    echo "Session test value is: " . $_SESSION['test'] . "<br>";
+    echo "<p>No session variables found.</p>";
 }
 
-// Display session information
-echo "<h2>Session Information</h2>";
-echo "Session ID: " . session_id() . "<br>";
-echo "Session Name: " . session_name() . "<br>";
-echo "Session Save Path: " . session_save_path() . "<br>";
-echo "Session Status: " . session_status() . " (2 = PHP_SESSION_ACTIVE)<br>";
+echo "<h3>Session Status:</h3>";
+echo "<p>Session ID: " . session_id() . "</p>";
+echo "<p>Session Status: " . session_status() . "</p>";
 
-// Display all session variables
-echo "<h2>Session Variables</h2>";
+echo "<h3>Required Variables Check:</h3>";
+echo "<ul>";
+echo "<li>user_id: " . (isset($_SESSION['user_id']) ? "SET (" . $_SESSION['user_id'] . ")" : "NOT SET") . "</li>";
+echo "<li>user_name: " . (isset($_SESSION['user_name']) ? "SET (" . $_SESSION['user_name'] . ")" : "NOT SET") . "</li>";
+echo "<li>user_email: " . (isset($_SESSION['user_email']) ? "SET (" . $_SESSION['user_email'] . ")" : "NOT SET") . "</li>";
+echo "<li>user_role: " . (isset($_SESSION['user_role']) ? "SET (" . $_SESSION['user_role'] . ")" : "NOT SET") . "</li>";
+echo "</ul>";
+
+echo "<h3>Server Variables:</h3>";
 echo "<pre>";
-print_r($_SESSION);
+print_r($_SERVER);
 echo "</pre>";
-
-// Display PHP info for session settings
-echo "<h2>PHP Session Configuration</h2>";
-ob_start();
-phpinfo(INFO_VARIABLES);
-$phpinfo = ob_get_clean();
-$phpinfo = preg_replace('%^.*<h1 class="p">PHP Variables</h1>.*?(<h2>.*?</h2>).*?(<table.*?</table>).*?<h2>%s', '$1$2', $phpinfo);
-echo $phpinfo;
 ?>

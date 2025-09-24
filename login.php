@@ -269,7 +269,15 @@ if (isset($_GET['demo']) && $_GET['demo'] == '1') {
                 $_SESSION['user_avatar'] = $firstInitial . $lastInitial;
             }
             
+            // Set login success flag
+            $_SESSION['login_success'] = true;
+            
             error_log("Demo login successful for user: " . $user['email']);
+            
+            // Clear any previous output buffers
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
             
             // Redirect to home page
             header("Location: home.php");
