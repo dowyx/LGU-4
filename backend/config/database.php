@@ -6,9 +6,9 @@
 
 class Database {
     private $host = "localhost";
-    private $db_name = "public_safety_campaigns";
-    private $username = "root";
-    private $password = "";
+    private $db_name = "pscm_lgu";
+    private $username = "pscm_lgu";
+    private $password = "admin123";
     private $conn;
 
     /**
