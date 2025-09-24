@@ -227,7 +227,7 @@ try {
                 <span>Settings</span>
             </a>
             <hr class="profile-menu-divider">
-            <a href="?logout=1" class="profile-menu-item" data-action="logout">
+            <a href="#" class="profile-menu-item" data-action="logout">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>

@@ -34,6 +34,9 @@ class BackendIntegration {
         
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Setup dropdown handlers
+        this.setupDropdownHandlers();
     }
     
     redirectToLogin() {
@@ -510,33 +513,8 @@ class BackendIntegration {
             if (notificationPanel) notificationPanel.classList.remove('show');
         });
         
-        // Logout handler
-        const logoutBtn = document.querySelector('[data-action=\"logout\"]');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.logout();
-            });
-        }
-        
         // Profile modal handlers
-        const viewProfileBtn = document.querySelector('[data-action=\"view-profile\"]');
-        const editProfileBtn = document.querySelector('[data-action=\"edit-profile\"]');
         const profileModal = document.getElementById('profileModal');
-        
-        if (viewProfileBtn && profileModal) {
-            viewProfileBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showProfileModal(false); // View mode
-            });
-        }
-        
-        if (editProfileBtn && profileModal) {
-            editProfileBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showProfileModal(true); // Edit mode
-            });
-        }
         
         // Mark all notifications as read
         const markAllReadBtn = document.getElementById('markAllRead');
@@ -581,17 +559,6 @@ class BackendIntegration {
         }
         
         modal.classList.add('show');
-    }
-    
-    async logout() {
-        try {
-            await this.makeRequest('auth.php?action=logout', 'POST');
-        } catch (error) {
-            console.warn('Logout API call failed:', error.message);
-        } finally {
-            this.clearAuthData();
-            window.location.href = 'login.php';
-        }
     }
     
     clearAuthData() {
