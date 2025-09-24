@@ -40,7 +40,6 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || !isset($_SESS
 // Check for successful login
 $login_success = false;
 if (isset($_SESSION['login_success']) && $_SESSION['login_success'] === true) {
-{{ ... }}
     $login_success = true;
     // Clear the flag so it doesn't show again on refresh
     unset($_SESSION['login_success']);
