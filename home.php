@@ -89,6 +89,22 @@ try {
         $user_department = $user_data['department'] ?? '';
         $user_phone = $user_data['phone'] ?? '';
         $user_location = $user_data['location'] ?? '';
+        
+        // Create user data array for JavaScript synchronization
+        $js_user_data = [
+            'id' => $user_id,
+            'first_name' => $user_data['first_name'],
+            'last_name' => $user_data['last_name'],
+            'email' => $user_data['email'],
+            'role' => $user_data['role'],
+            'department' => $user_data['department'] ?? '',
+            'phone' => $user_data['phone'] ?? '',
+            'location' => $user_data['location'] ?? '',
+            'name' => $user_data['first_name'] . ' ' . $user_data['last_name']
+        ];
+        
+        // Store user data in session for JavaScript access
+        $_SESSION['js_user_data'] = json_encode($js_user_data);
     }
 } catch (Exception $e) {
     error_log("Error fetching user data: " . $e->getMessage());
@@ -2761,6 +2777,26 @@ try {
         window.dashboardStats = dashboardStats;
         window.recentCampaigns = recentCampaigns;
     </script>
+    
+    <!-- Synchronize PHP session data with localStorage for JavaScript authentication -->
+    <script>
+        <?php if (isset($_SESSION['js_user_data'])): ?>
+        // Parse user data from PHP session
+        const phpUserData = <?php echo $_SESSION['js_user_data']; ?>;
+        
+        // Set localStorage items that JavaScript expects
+        localStorage.setItem('user_data', JSON.stringify(phpUserData));
+        localStorage.setItem('isLoggedIn', 'true');
+        
+        // Create a simple token for demo purposes
+        const tokenData = {
+            user_id: phpUserData.id,
+            expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+        };
+        localStorage.setItem('auth_token', btoa(JSON.stringify(tokenData)));
+        <?php endif; ?>
+    </script>
+    
     <script src="backend-integration.js"></script>
     <script src="index.js"></script>
 </body>
