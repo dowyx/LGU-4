@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Operations Test - Public Safety Campaign System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .module-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+        .error {
+            color: #e74c3c;
+            background: #fdeaea;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #27ae60;
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗂️ CRUD Operations Test - Public Safety Campaign System</h1>
+        <p>Test the Create, Read, Update, Delete operations for your database modules.</p>
+
+        <!-- Users Module -->
+        <div class="module-section">
+            <h2>👥 Users Management</h2>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="testAPI('users', 'GET', 'list')">📋 List Users</button>
+                <button class="btn btn-success" onclick="showCreateUserModal()">➕ Create User</button>
+                <button class="btn btn-info" onclick="testAPI('users', 'GET', 'roles')">🔐 Get Roles</button>
+                <button class="btn btn-warning" onclick="testUserLogin()">🔑 Test Login</button>
+            </div>
+            <div id="users-results" class="results" style="display: none;"></div>
+        </div>
+
+        <!-- Campaigns Module -->
+        <div class="module-section">
+            <h2>📢 Campaigns Management</h2>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="testAPI('campaigns', 'GET', 'list')">📋 List Campaigns</button>
+                <button class="btn btn-success" onclick="showCreateCampaignModal()">➕ Create Campaign</button>
+                <button class="btn btn-info" onclick="getCampaignDetails()">📊 Get Details</button>
+                <button class="btn btn-warning" onclick="updateCampaignStatus()">🔄 Update Status</button>
+            </div>
+            <div id="campaigns-results" class="results" style="display: none;"></div>
+        </div>
+
+        <!-- Surveys Module -->
+        <div class="module-section">
+            <h2>📝 Surveys Management</h2>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="testAPI('surveys', 'GET', 'list')">📋 List Surveys</button>
+                <button class="btn btn-success" onclick="showCreateSurveyModal()">➕ Create Survey</button>
+                <button class="btn btn-info" onclick="getSurveyQuestions()">❓ Get Questions</button>
+                <button class="btn btn-warning" onclick="submitSurveyResponse()">✅ Submit Response</button>
+            </div>
+            <div id="surveys-results" class="results" style="display: none;"></div>
+        </div>
+
+        <!-- Audience Segmentation Module -->
+        <div class="module-section">
+            <h2>👥 Audience Segmentation</h2>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="testAPI('audience-segmentation', 'GET', 'contacts')">👤 List Contacts</button>
+                <button class="btn btn-primary" onclick="testAPI('audience-segmentation', 'GET', 'segments')">📊 List Segments</button>
+                <button class="btn btn-success" onclick="showCreateContactModal()">➕ Create Contact</button>
+                <button class="btn btn-success" onclick="showCreateSegmentModal()">➕ Create Segment</button>
+                <button class="btn btn-info" onclick="getSegmentContacts()">👥 Segment Contacts</button>
+                <button class="btn btn-warning" onclick="importContacts()">📤 Import Contacts</button>
+            </div>
+            <div id="audience-segmentation-results" class="results" style="display: none;"></div>
+        </div>
+
+        <!-- SMS Alerts Module -->
+        <div class="module-section">
+            <h2>📱 SMS Alert Notifications</h2>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="testAPI('sms-alerts', 'GET', 'list')">📋 List SMS Alerts</button>
+                <button class="btn btn-success" onclick="showCreateSmsModal()">➕ Create SMS Alert</button>
+                <button class="btn btn-info" onclick="getSmsTemplates()">📝 Get Templates</button>
+                <button class="btn btn-warning" onclick="sendTestSms()">📲 Send Test SMS</button>
+                <button class="btn btn-info" onclick="getSmsAnalytics()">📊 SMS Analytics</button>
+            </div>
+            <div id="sms-alerts-results" class="results" style="display: none;"></div>
+        </div>
+
+        <!-- Database Test -->
+        <div class="module-section">
+            <h2>🔌 Database Connection Test</h2>
+            <div class="button-group">
+                <button class="btn btn-info" onclick="testDatabaseConnection()">🔍 Test Connection</button>
+                <button class="btn btn-primary" onclick="checkAllTables()">📋 Check Tables</button>
+                <button class="btn btn-success" onclick="getSampleData()">📊 Sample Data</button>
+            </div>
+            <div id="database-results" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createUserModal')">&times;</span>
+            <h3>Create New User</h3>
+            <form id="createUserForm">
+                <div class="form-group">
+                    <label>Username:</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label>First Name:</label>
+                    <input type="text" id="first_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name:</label>
+                    <input type="text" id="last_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Department:</label>
+                    <input type="text" id="department">
+                </div>
+                <button type="submit" class="btn btn-success">Create User</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Campaign Modal -->
+    <div id="createCampaignModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createCampaignModal')">&times;</span>
+            <h3>Create New Campaign</h3>
+            <form id="createCampaignForm">
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="campaign_title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="campaign_description" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <select id="campaign_category" required>
+                        <option value="">Select Category</option>
+                        <option value="road_safety">Road Safety</option>
+                        <option value="fire_safety">Fire Safety</option>
+                        <option value="cyber_security">Cyber Security</option>
+                        <option value="emergency_preparedness">Emergency Preparedness</option>
+                        <option value="health_safety">Health Safety</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority:</label>
+                    <select id="campaign_priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Create Campaign</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Survey Modal -->
+    <div id="createSurveyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createSurveyModal')">&times;</span>
+            <h3>Create New Survey</h3>
+            <form id="createSurveyForm">
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="survey_title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="survey_description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Survey Type:</label>
+                    <select id="survey_type" required>
+                        <option value="">Select Type</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="assessment">Assessment</option>
+                        <option value="registration">Registration</option>
+                        <option value="evaluation">Evaluation</option>
+                        <option value="poll">Poll</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="is_anonymous"> Anonymous Survey
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-success">Create Survey</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Contact Modal -->
+    <div id="createContactModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createContactModal')">&times;</span>
+            <h3>Create New Contact</h3>
+            <form id="createContactForm">
+                <div class="form-group">
+                    <label>First Name:</label>
+                    <input type="text" id="contact_first_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name:</label>
+                    <input type="text" id="contact_last_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="contact_email">
+                </div>
+                <div class="form-group">
+                    <label>Phone:</label>
+                    <input type="tel" id="contact_phone">
+                </div>
+                <div class="form-group">
+                    <label>Age Group:</label>
+                    <select id="contact_age_group">
+                        <option value="">Select Age Group</option>
+                        <option value="18-25">18-25</option>
+                        <option value="26-35">26-35</option>
+                        <option value="36-45">36-45</option>
+                        <option value="46-55">46-55</option>
+                        <option value="56-65">56-65</option>
+                        <option value="65+">65+</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>City:</label>
+                    <input type="text" id="contact_city">
+                </div>
+                <button type="submit" class="btn btn-success">Create Contact</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Segment Modal -->
+    <div id="createSegmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createSegmentModal')">&times;</span>
+            <h3>Create New Segment</h3>
+            <form id="createSegmentForm">
+                <div class="form-group">
+                    <label>Segment Name:</label>
+                    <input type="text" id="segment_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="segment_description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Segment Type:</label>
+                    <select id="segment_type">
+                        <option value="manual">Manual</option>
+                        <option value="dynamic">Dynamic</option>
+                        <option value="imported">Imported</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Create Segment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create SMS Alert Modal -->
+    <div id="createSmsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createSmsModal')">&times;</span>
+            <h3>Create SMS Alert</h3>
+            <form id="createSmsForm">
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="sms_title" required>
+                </div>
+                <div class="form-group">
+                    <label>Message (Max 160 chars):</label>
+                    <textarea id="sms_message" rows="3" maxlength="160" required></textarea>
+                    <small>Characters remaining: <span id="char-count">160</span></small>
+                </div>
+                <div class="form-group">
+                    <label>Alert Type:</label>
+                    <select id="sms_alert_type" required>
+                        <option value="">Select Type</option>
+                        <option value="emergency">Emergency</option>
+                        <option value="warning">Warning</option>
+                        <option value="info">Information</option>
+                        <option value="reminder">Reminder</option>
+                        <option value="update">Update</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority:</label>
+                    <select id="sms_priority">
+                        <option value="low">Low</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Create SMS Alert</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Default user ID for testing (using default login account)
+        const TEST_USER_ID = 1;
+
+        async function testAPI(module, method, action, data = null) {
+            const resultsDiv = document.getElementById(`${module}-results`);
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">Loading...</div>';
+
+            try {
+                const url = `backend/api/${module}.php?action=${action}`;
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (data && (method === 'POST' || method === 'PUT')) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(url, options);
+                const result = await response.json();
+
+                if (result.success || result.error) {
+                    resultsDiv.innerHTML = `
+                        <div class="${result.success ? 'success' : 'error'}">
+                            ${result.success ? '✅ Success' : '❌ Error'}: ${result.message || result.error}
+                        </div>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+
+        function showCreateUserModal() {
+            document.getElementById('createUserModal').style.display = 'block';
+        }
+
+        function showCreateCampaignModal() {
+            document.getElementById('createCampaignModal').style.display = 'block';
+        }
+
+        function showCreateSurveyModal() {
+            document.getElementById('createSurveyModal').style.display = 'block';
+        }
+
+        function showCreateContactModal() {
+            document.getElementById('createContactModal').style.display = 'block';
+        }
+
+        function showCreateSegmentModal() {
+            document.getElementById('createSegmentModal').style.display = 'block';
+        }
+
+        function showCreateSmsModal() {
+            document.getElementById('createSmsModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Form submissions
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                department: document.getElementById('department').value,
+                role_id: 2 // Default role
+            };
+
+            await testAPI('users', 'POST', 'create', userData);
+            closeModal('createUserModal');
+        });
+
+        document.getElementById('createCampaignForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const campaignData = {
+                title: document.getElementById('campaign_title').value,
+                description: document.getElementById('campaign_description').value,
+                category: document.getElementById('campaign_category').value,
+                priority: document.getElementById('campaign_priority').value,
+                created_by: TEST_USER_ID
+            };
+
+            await testAPI('campaigns', 'POST', 'create', campaignData);
+            closeModal('createCampaignModal');
+        });
+
+        document.getElementById('createSurveyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const surveyData = {
+                title: document.getElementById('survey_title').value,
+                description: document.getElementById('survey_description').value,
+                survey_type: document.getElementById('survey_type').value,
+                is_anonymous: document.getElementById('is_anonymous').checked,
+                created_by: TEST_USER_ID
+            };
+
+            await testAPI('surveys', 'POST', 'create', surveyData);
+            closeModal('createSurveyModal');
+        });
+
+        // Contact form submission
+        document.getElementById('createContactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const contactData = {
+                first_name: document.getElementById('contact_first_name').value,
+                last_name: document.getElementById('contact_last_name').value,
+                email: document.getElementById('contact_email').value,
+                phone: document.getElementById('contact_phone').value,
+                age_group: document.getElementById('contact_age_group').value,
+                city: document.getElementById('contact_city').value,
+                source: 'manual'
+            };
+
+            await testAPI('audience-segmentation', 'POST', 'create_contact', contactData);
+            closeModal('createContactModal');
+        });
+
+        // Segment form submission
+        document.getElementById('createSegmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const segmentData = {
+                name: document.getElementById('segment_name').value,
+                description: document.getElementById('segment_description').value,
+                segment_type: document.getElementById('segment_type').value,
+                created_by: TEST_USER_ID
+            };
+
+            await testAPI('audience-segmentation', 'POST', 'create_segment', segmentData);
+            closeModal('createSegmentModal');
+        });
+
+        // SMS Alert form submission
+        document.getElementById('createSmsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const smsData = {
+                title: document.getElementById('sms_title').value,
+                message: document.getElementById('sms_message').value,
+                alert_type: document.getElementById('sms_alert_type').value,
+                priority: document.getElementById('sms_priority').value,
+                created_by: TEST_USER_ID
+            };
+
+            await testAPI('sms-alerts', 'POST', 'create', smsData);
+            closeModal('createSmsModal');
+        });
+
+        // Character counter for SMS message
+        document.getElementById('sms_message').addEventListener('input', function() {
+            const remaining = 160 - this.value.length;
+            document.getElementById('char-count').textContent = remaining;
+        });
+
+        // Additional test functions
+        async function testUserLogin() {
+            const loginData = {
+                email: 'demo@safetycampaign.org',
+                password: 'password'
+            };
+            await testAPI('users', 'POST', 'login', loginData);
+        }
+
+        async function getCampaignDetails() {
+            const url = 'backend/api/campaigns.php?action=details&id=1';
+            const resultsDiv = document.getElementById('campaigns-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">Loading campaign details...</div>';
+
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function updateCampaignStatus() {
+            const statusData = {
+                campaign_id: 1,
+                status: 'active'
+            };
+            await testAPI('campaigns', 'PUT', 'status', statusData);
+        }
+
+        async function getSurveyQuestions() {
+            const url = 'backend/api/surveys.php?action=questions&survey_id=1';
+            const resultsDiv = document.getElementById('surveys-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">Loading survey questions...</div>';
+
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function submitSurveyResponse() {
+            const responseData = {
+                survey_id: 1,
+                respondent_email: 'test@example.com',
+                respondent_name: 'Test User',
+                response_data: {
+                    q1: 5,
+                    q2: ['Defensive driving', 'Traffic rules'],
+                    q3: 'Email newsletter'
+                },
+                completion_time: 120
+            };
+            await testAPI('surveys', 'POST', 'response', responseData);
+        }
+
+        async function testDatabaseConnection() {
+            const resultsDiv = document.getElementById('database-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">Testing database connection...</div>';
+
+            try {
+                const response = await fetch('backend/test-database-connection.php');
+                const result = await response.json();
+                
+                let html = `<div class="${result.status === 'success' ? 'success' : 'error'}">
+                    ${result.status === 'success' ? '✅ Connection Successful' : '❌ Connection Failed'}
+                </div>`;
+                
+                html += `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+
+        async function checkAllTables() {
+            await testDatabaseConnection();
+        }
+
+        async function getSampleData() {
+            await testDatabaseConnection();
+        }
+
+        // New functions for audience segmentation
+        async function getSegmentContacts() {
+            const url = 'backend/api/audience-segmentation.php?action=segment_contacts&segment_id=1';
+            const resultsDiv = document.getElementById('audience-segmentation-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">Loading segment contacts...</div>';
+
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function importContacts() {
+            const sampleContacts = [
+                {
+                    first_name: 'John',
+                    last_name: 'Doe',
+                    email: 'john.doe@example.com',
+                    phone: '+1234567890',
+                    city: 'Sample City',
+                    age_group: '26-35'
+                },
+                {
+                    first_name: 'Jane',
+                    last_name: 'Smith',
+                    email: 'jane.smith@example.com',
+                    phone: '+1234567891',
+                    city: 'Sample City',
+                    age_group: '36-45'
+                }
+            ];
+
+            const importData = {
+                contacts: sampleContacts
+            };
+
+            await testAPI('audience-segmentation', 'POST', 'import_contacts', importData);
+        }
+
+        // New functions for SMS alerts
+        async function getSmsTemplates() {
+            const url = 'backend/api/sms-alerts.php?action=templates';
+            const resultsDiv = document.getElementById('sms-alerts-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">Loading SMS templates...</div>';
+
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function sendTestSms() {
+            const testData = {
+                phone: '+1234567890',
+                message: 'This is a test SMS from the Public Safety Campaign System.'
+            };
+
+            await testAPI('sms-alerts', 'POST', 'send_test', testData);
+        }
+
+        async function getSmsAnalytics() {
+            const url = 'backend/api/sms-alerts.php?action=analytics';
+            const resultsDiv = document.getElementById('sms-alerts-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">Loading SMS analytics...</div>';
+
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
