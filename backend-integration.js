@@ -516,6 +516,15 @@ class BackendIntegration {
         // Profile modal handlers
         const profileModal = document.getElementById('profileModal');
         
+        // Logout button
+        const logoutButton = document.getElementById('logoutButton');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.directLogout();
+            });
+        }
+        
         // Mark all notifications as read
         const markAllReadBtn = document.getElementById('markAllRead');
         if (markAllReadBtn) {
@@ -646,12 +655,15 @@ class BackendIntegration {
     
     // Direct logout function that can be called from HTML
     async directLogout() {
+        console.log('Logout function called');
         // Show confirmation
         if (!confirm('Are you sure you want to logout?')) {
+            console.log('Logout cancelled by user');
             return;
         }
         
         try {
+            console.log('Attempting to logout');
             // Try to logout via AJAX (direct request to current page)
             if (!this.demoMode) {
                 const options = {
@@ -662,13 +674,16 @@ class BackendIntegration {
                     body: JSON.stringify({action: 'logout'})
                 };
                 
+                console.log('Sending logout request to:', window.location.href);
                 const response = await fetch(window.location.href, options);
                 
+                console.log('Logout response status:', response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const result = await response.json();
+                console.log('Logout response:', result);
                 
                 if (!result.success) {
                     throw new Error('Logout failed');
@@ -676,27 +691,45 @@ class BackendIntegration {
             }
             
             // Clear local data
+            console.log('Clearing local data');
             this.clearAuthData();
             
             // Show logout message
             this.showNotification('Logged out successfully', 'success');
             
             // Redirect to login
+            console.log('Redirecting to login page');
             setTimeout(() => {
                 this.redirectToLogin();
             }, 1000);
         } catch (error) {
+            console.error('Logout failed:', error);
             console.warn('Logout failed, proceeding with local logout:', error.message);
             // Clear local data anyway
             this.clearAuthData();
             this.redirectToLogin();
         }
     }
+    
+    // Test function for debugging
+    testLogout() {
+        console.log('Test logout function called');
+        this.directLogout();
+    }
 }
 
 // Initialize backend integration when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.backendIntegration = new BackendIntegration();
+    
+    // Add global function for testing
+    window.testLogout = function() {
+        if (window.backendIntegration) {
+            window.backendIntegration.testLogout();
+        } else {
+            console.error('Backend integration not initialized');
+        }
+    };
 });
 
 // Utility function to escape HTML

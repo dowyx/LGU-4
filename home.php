@@ -10,6 +10,23 @@ session_start();
 require_once 'backend/config/database.php';
 require_once 'backend/utils/helpers.php';
 
+// Handle AJAX logout request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] == 'logout') {
+    error_log('AJAX logout request received');
+    // Clear all session data
+    session_unset();
+    session_destroy();
+    
+    // Set content type header
+    header('Content-Type: application/json');
+    
+    // Return success response
+    $response = ['success' => true, 'message' => 'Logged out successfully'];
+    error_log('AJAX logout response: ' . json_encode($response));
+    echo json_encode($response);
+    exit();
+}
+
 // Handle logout if requested
 if (isset($_GET['logout']) && $_GET['logout'] == 1) {
     // Clear all session data
@@ -22,20 +39,6 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1) {
     }
     // Redirect to login page
     header("Location: login.php");
-    exit();
-}
-
-// Handle AJAX logout request
-if (isset($_POST['action']) && $_POST['action'] == 'logout') {
-    // Clear all session data
-    session_unset();
-    session_destroy();
-    
-    // Set content type header
-    header('Content-Type: application/json');
-    
-    // Return success response
-    echo json_encode(['success' => true, 'message' => 'Logged out successfully']);
     exit();
 }
 
@@ -241,7 +244,7 @@ try {
                 <span>Settings</span>
             </a>
             <hr class="profile-menu-divider">
-            <a href="#" class="profile-menu-item" onclick="window.backendIntegration.directLogout(); return false;">
+            <a href="#" class="profile-menu-item" id="logoutButton">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
