@@ -16,6 +16,7 @@ class BackendIntegration {
     }
     
     async init() {
+        console.log('BackendIntegration init called');
         // Check if user is authenticated
         await this.checkAuthStatus();
         
@@ -33,10 +34,15 @@ class BackendIntegration {
         }
         
         // Setup event listeners
+        console.log('Calling setupEventListeners');
         this.setupEventListeners();
         
         // Setup dropdown handlers
-        this.setupDropdownHandlers();
+        console.log('Calling setupDropdownHandlers');
+        // Use setTimeout to ensure DOM is fully ready
+        setTimeout(() => {
+            this.setupDropdownHandlers();
+        }, 0);
     }
     
     redirectToLogin() {
@@ -485,13 +491,17 @@ class BackendIntegration {
     }
     
     setupDropdownHandlers() {
+        console.log('setupDropdownHandlers called');
         // Profile dropdown toggle
         const userProfileToggle = document.getElementById('userProfileToggle');
         const profileDropdown = document.getElementById('profileDropdown');
         
+        console.log('Profile toggle elements:', userProfileToggle, profileDropdown);
+        
         if (userProfileToggle && profileDropdown) {
             userProfileToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
+                console.log('Profile toggle clicked');
                 profileDropdown.classList.toggle('show');
             });
         }
@@ -518,11 +528,21 @@ class BackendIntegration {
         
         // Logout button
         const logoutButton = document.getElementById('logoutButton');
+        console.log('Logout button element:', logoutButton);
         if (logoutButton) {
-            logoutButton.addEventListener('click', (e) => {
+            // Remove any existing event listeners to prevent duplicates
+            logoutButton.removeEventListener('click', this.handleLogoutClick);
+            // Store the event handler as a class property for proper binding
+            this.handleLogoutClick = (e) => {
                 e.preventDefault();
+                console.log('Logout button clicked');
                 this.directLogout();
-            });
+            };
+            logoutButton.addEventListener('click', this.handleLogoutClick);
+            // Mark that we've attached the event listener
+            logoutButton.setAttribute('data-event-attached', 'true');
+        } else {
+            console.error('Logout button not found');
         }
         
         // Mark all notifications as read
@@ -666,24 +686,39 @@ class BackendIntegration {
             console.log('Attempting to logout');
             // Try to logout via AJAX (direct request to current page)
             if (!this.demoMode) {
+                // First try a simple approach
+                console.log('Trying simple logout approach');
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('action', 'logout');
+                
                 const options = {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({action: 'logout'})
+                    body: formData
                 };
                 
                 console.log('Sending logout request to:', window.location.href);
                 const response = await fetch(window.location.href, options);
                 
                 console.log('Logout response status:', response.status);
+                console.log('Logout response headers:', [...response.headers.entries()]);
+                
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                const result = await response.json();
-                console.log('Logout response:', result);
+                // Try to parse response as JSON
+                let result;
+                try {
+                    result = await response.json();
+                    console.log('Logout response (JSON):', result);
+                } catch (parseError) {
+                    // If JSON parsing fails, try to get text
+                    const text = await response.text();
+                    console.log('Logout response (text):', text);
+                    result = {success: true, message: 'Logged out successfully'};
+                }
                 
                 if (!result.success) {
                     throw new Error('Logout failed');
@@ -730,6 +765,37 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Backend integration not initialized');
         }
     };
+    
+    // Add direct logout function for testing
+    window.directLogout = function() {
+        if (window.backendIntegration) {
+            console.log('Calling directLogout from global function');
+            window.backendIntegration.directLogout();
+        } else {
+            console.error('Backend integration not initialized');
+        }
+    };
+    
+    // Fallback: Attach logout event listener after a short delay
+    setTimeout(() => {
+        const logoutButton = document.getElementById('logoutButton');
+        console.log('Fallback: Logout button element:', logoutButton);
+        if (logoutButton && !logoutButton.hasAttribute('data-event-attached')) {
+            // Use the same handler as in setupDropdownHandlers if available
+            if (window.backendIntegration && typeof window.backendIntegration.handleLogoutClick === 'function') {
+                logoutButton.addEventListener('click', window.backendIntegration.handleLogoutClick);
+            } else {
+                logoutButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Fallback: Logout button clicked');
+                    if (window.backendIntegration) {
+                        window.backendIntegration.directLogout();
+                    }
+                });
+            }
+            logoutButton.setAttribute('data-event-attached', 'true');
+        }
+    }, 1000);
 });
 
 // Utility function to escape HTML

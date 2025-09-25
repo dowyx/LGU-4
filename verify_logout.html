@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Logout</title>
+</head>
+<body>
+    <h1>Verify Logout Functionality</h1>
+    <p>This page tests if the logout button is properly attached.</p>
+    
+    <div class="profile-dropdown" id="profileDropdown" style="display: block;">
+        <div class="profile-menu">
+            <a href="#" class="profile-menu-item" id="logoutButton">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+    
+    <button id="testButton">Test Event Listener</button>
+    <div id="result"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            const testButton = document.getElementById('testButton');
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Logout button found: ' + (logoutButton ? 'Yes' : 'No') + '<br>';
+            
+            if (logoutButton) {
+                // Check if event listener is attached
+                const hasListener = logoutButton.hasAttribute('data-event-attached');
+                resultDiv.innerHTML += 'Event listener attached: ' + (hasListener ? 'Yes' : 'No') + '<br>';
+                
+                // Add our own test listener
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Test logout button clicked');
+                    resultDiv.innerHTML += 'Logout button clicked!<br>';
+                });
+                
+                testButton.addEventListener('click', function() {
+                    // Simulate click
+                    logoutButton.click();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

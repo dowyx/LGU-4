@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logout Debug</title>
+</head>
+<body>
+    <h1>Logout Debug Test</h1>
+    <button id="testLogout">Test Logout</button>
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('testLogout').addEventListener('click', async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing logout...';
+            
+            try {
+                console.log('Sending logout request');
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('action', 'logout');
+                
+                // Send request to current page (home.php)
+                const response = await fetch('home.php', {
+                    method: 'POST',
+                    body: formData,
+                    // Don't redirect on 302
+                    redirect: 'manual'
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                // Try to get response text
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                resultDiv.innerHTML = `
+                    <p>Status: ${response.status}</p>
+                    <p>Headers: ${JSON.stringify([...response.headers.entries()])}</p>
+                    <p>Response: ${text}</p>
+                `;
+                
+                // If we get a redirect, that means logout worked
+                if (response.status === 0 || response.type === 'opaqueredirect') {
+                    resultDiv.innerHTML += '<p>Redirect detected - logout likely successful</p>';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

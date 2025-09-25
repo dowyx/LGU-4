@@ -11,11 +11,15 @@ require_once 'backend/config/database.php';
 require_once 'backend/utils/helpers.php';
 
 // Handle AJAX logout request
+error_log('Checking for AJAX logout request. Method: ' . $_SERVER['REQUEST_METHOD'] . ', POST data: ' . print_r($_POST, true));
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] == 'logout') {
     error_log('AJAX logout request received');
     // Clear all session data
     session_unset();
     session_destroy();
+    
+    // Also clear any authentication data in localStorage (for JavaScript)
+    setcookie('auth_token', '', time() - 3600, '/');
     
     // Set content type header
     header('Content-Type: application/json');
@@ -2816,6 +2820,51 @@ try {
     
     <script src="backend-integration.js"></script>
     <script src="index.js"></script>
+    
+    <!-- Ensure logout button works -->
+    <script>
+        // Directly attach logout event listener to ensure it works
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Logout button clicked - direct attachment');
+                    
+                    // Show confirmation
+                    if (confirm('Are you sure you want to logout?')) {
+                        // Send logout request
+                        const formData = new FormData();
+                        formData.append('action', 'logout');
+                        
+                        fetch('home.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error('Network response was not ok');
+                        })
+                        .then(data => {
+                            console.log('Logout response:', data);
+                            // Clear any local storage
+                            localStorage.clear();
+                            // Redirect to login
+                            window.location.href = 'login.php';
+                        })
+                        .catch(error => {
+                            console.error('Logout error:', error);
+                            // Even if there's an error, clear local data and redirect
+                            localStorage.clear();
+                            window.location.href = 'login.php';
+                        });
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 
