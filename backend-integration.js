@@ -360,9 +360,9 @@ class BackendIntegration {
                 return;
             }
             
-            // Try to logout via API
+            // Try to logout via AJAX
             if (!this.demoMode) {
-                await this.makeRequest('auth.php?action=logout', 'POST');
+                await this.makeRequest('', 'POST', {action: 'logout'});
             }
             
             // Clear local data
@@ -564,9 +564,13 @@ class BackendIntegration {
     clearAuthData() {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_data');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('loginTime');
+        localStorage.removeItem('demoMode');
         this.authToken = null;
         this.userData = {};
         this.isAuthenticated = false;
+        this.demoMode = false;
     }
     
     async markAllNotificationsAsRead() {
@@ -638,6 +642,55 @@ class BackendIntegration {
             console.warn('Token refresh failed:', error.message);
         }
         return false;
+    }
+    
+    // Direct logout function that can be called from HTML
+    async directLogout() {
+        // Show confirmation
+        if (!confirm('Are you sure you want to logout?')) {
+            return;
+        }
+        
+        try {
+            // Try to logout via AJAX (direct request to current page)
+            if (!this.demoMode) {
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({action: 'logout'})
+                };
+                
+                const response = await fetch(window.location.href, options);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error('Logout failed');
+                }
+            }
+            
+            // Clear local data
+            this.clearAuthData();
+            
+            // Show logout message
+            this.showNotification('Logged out successfully', 'success');
+            
+            // Redirect to login
+            setTimeout(() => {
+                this.redirectToLogin();
+            }, 1000);
+        } catch (error) {
+            console.warn('Logout failed, proceeding with local logout:', error.message);
+            // Clear local data anyway
+            this.clearAuthData();
+            this.redirectToLogin();
+        }
     }
 }
 

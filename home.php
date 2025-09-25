@@ -25,6 +25,20 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1) {
     exit();
 }
 
+// Handle AJAX logout request
+if (isset($_POST['action']) && $_POST['action'] == 'logout') {
+    // Clear all session data
+    session_unset();
+    session_destroy();
+    
+    // Set content type header
+    header('Content-Type: application/json');
+    
+    // Return success response
+    echo json_encode(['success' => true, 'message' => 'Logged out successfully']);
+    exit();
+}
+
 // Check if user is logged in - more robust validation with debugging
 $logged_in = false;
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
@@ -227,7 +241,7 @@ try {
                 <span>Settings</span>
             </a>
             <hr class="profile-menu-divider">
-            <a href="#" class="profile-menu-item" data-action="logout">
+            <a href="#" class="profile-menu-item" onclick="window.backendIntegration.directLogout(); return false;">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
